@@ -6,22 +6,32 @@
   },
   "scripts": {
     "build": "tsc",
+    "prebuild": "rm -rf dist/asset.*",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "synth": "cdk synth -c domain=${DOMAIN} -o dist",
+    "diff": "cdk diff -c domain=${DOMAIN}",
+    "deploy": "cdk deploy -c domain=${DOMAIN}"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.91.0",
+    "@aws-cdk/assert": "1.96.0",
     "@types/jest": "^26.0.10",
     "@types/node": "10.17.27",
+    "add": "^2.0.6",
+    "esbuild": "0",
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
-    "aws-cdk": "1.91.0",
     "ts-node": "^9.0.0",
-    "typescript": "~3.9.7"
+    "typescript": "~3.9.7",
+    "yarn": "^1.22.10"
   },
   "dependencies": {
-    "@aws-cdk/core": "1.91.0",
+    "@aws-cdk/aws-iam": "^1.96.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.96.0",
+    "@aws-cdk/aws-s3": "^1.96.0",
+    "@aws-cdk/aws-ses-actions": "^1.96.0",
+    "@aws-cdk/core": "1.96.0",
     "source-map-support": "^0.5.16"
   }
 }
