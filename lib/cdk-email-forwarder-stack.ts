@@ -33,9 +33,9 @@ export class CdkEmailForwarderStack extends cdk.Stack {
 
   protected onValidate(): string[] {
     const errors: string[] = []
-    // if (!this.domainName) {
-    //   errors.push('context variable "domain" is required')
-    // }
+    if (!this.domainName) {
+      errors.push('context variable "domain" is required')
+    }
     // if (!this.bucketName) {
     //   errors.push('context variable "bucketName" is required')
     // }
