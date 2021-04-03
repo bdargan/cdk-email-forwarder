@@ -2,6 +2,7 @@ import * as nodejs from '@aws-cdk/aws-lambda-nodejs'
 import * as cdk from '@aws-cdk/core'
 import * as iam from '@aws-cdk/aws-iam'
 import * as lambda from '@aws-cdk/aws-lambda'
+import { Duration } from '@aws-cdk/core'
 export interface ForwarderLambdaProps extends cdk.StackProps {}
 
 export class ForwarderLambda extends cdk.Construct {
@@ -17,11 +18,13 @@ export class ForwarderLambda extends cdk.Construct {
       managedPolicies: [fnBasicExecPolicy]
     })
 
+    const timeout = Duration.minutes(2)
     const fn = new nodejs.NodejsFunction(this, fnName, {
       entry: './lambdas/forwarder/index.ts',
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_14_X,
-      role
+      role,
+      timeout
     })
     this.lambda = fn
   }
