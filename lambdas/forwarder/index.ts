@@ -5,10 +5,12 @@ const region = process.env.REGION ?? 'ap-southeast2'
 const destination = process.env.DESTINATION_EMAIL ?? 'brett.dargan@gmail.com'
 const client = new SESClient({ region })
 
+// domains, receiver address
 // const forwardMapping
-// *@domain => 1 address
 // raw/html
 // attachments
+// plus support
+// shortcode
 
 export const handler = async (event: any, context: any) => {
   console.log('forwarder event', JSON.stringify(event, null, 2))

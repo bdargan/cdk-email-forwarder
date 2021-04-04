@@ -9,4 +9,7 @@ const env = {
   region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || process.env.AWS_REGION
 }
 
-new CdkEmailForwarderStack(app, 'CdkEmailForwarderStack', { env })
+const stage = process.env.STAGE || 'tmc'
+console.log('env', env)
+
+new CdkEmailForwarderStack(app, 'CdkEmailForwarderStack', { env, stage })

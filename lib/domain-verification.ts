@@ -6,16 +6,17 @@ import * as iam from '@aws-cdk/aws-iam'
 import { IHostedZone } from '@aws-cdk/aws-route53'
 export interface VerifyDomainIdentityProps {
   service?: string //SES
+  domainName: string //ignored for now
 }
 
 export class VerifyDomainIdentity extends cdk.Construct {
   readonly domainName: string
   readonly zone: IHostedZone
-  constructor(scope: cdk.Construct, id: string, props?: VerifyDomainIdentityProps) {
+  constructor(scope: cdk.Construct, id: string, props: VerifyDomainIdentityProps) {
     super(scope, id)
 
-    const domain = this.node.tryGetContext('domain') ?? 'no-context-variable'
-    this.domainName = domain
+    const domainName = props.domainName
+    this.domainName = props.domainName
 
     const service = props?.service ?? 'SES'
 
@@ -38,12 +39,15 @@ export class VerifyDomainIdentity extends cdk.Construct {
       })
     )
 
+    const prefix = `verifyDomainIdentity ${domainName}`
+
+    console.debug(prefix, 'start')
     const verifyDomainIdentity = new AwsCustomResource(this, 'VerifyDomainIdentity', {
       onCreate: {
         service,
         action: 'verifyDomainIdentity',
         parameters: {
-          Domain: domain,
+          Domain: domainName,
           DKIM: true
         },
         physicalResourceId: PhysicalResourceId.fromResponse('VerificationToken') // Use the token returned by the call as physical id
@@ -54,7 +58,9 @@ export class VerifyDomainIdentity extends cdk.Construct {
       logRetention: logs.RetentionDays.ONE_WEEK
     })
 
-    const zone = route53.PublicHostedZone.fromLookup(this, 'Zone', { domainName: domain })
+    console.debug(prefix, 'lookup zone')
+    const zone = route53.PublicHostedZone.fromLookup(this, `Zone`, { domainName })
+    // const zone = route53.HostedZone.fromHostedZoneAttributes(this, `Zone`, { zoneName: domainName }))
     this.zone = zone
 
     role.addToPolicy(
@@ -65,26 +71,22 @@ export class VerifyDomainIdentity extends cdk.Construct {
       })
     )
 
-    const recordName = `_amazon${service.toLowerCase()}.${domain}`
-    const verificationToken = verifyDomainIdentity.getResponseField('VerificationToken').replace('"', '')
-    console.log('verificationToken', verificationToken)
+    const recordName = `_amazon${service.toLowerCase()}.${domainName}`
+    const verificationToken = verifyDomainIdentity.getResponseField('VerificationToken')
     new route53.TxtRecord(this, `${service}VerificationRecord`, {
       zone,
       recordName,
       values: [verificationToken]
     })
+    console.debug(prefix, 'txt record added')
 
-    // console.log("Waiting for DNS records to commit...");
-    // await this.waitForRecordChange(changeId);
-
-    // console.log("Waiting for domain verification...");
-    // await this.waitForIdentityVerified();
-    //guess a few more things are needed? https://github.com/mooyoul/aws-cdk-ses-domain-identity/blob/master/lambda-packages/dns-validated-domain-identity-handler/src/verifier.ts
+    //Q: are any more steps needed? https://github.com/mooyoul/aws-cdk-ses-domain-identity/blob/master/lambda-packages/dns-validated-domain-identity-handler/src/verifier.ts
   }
 
   onValidate(): string[] {
     const errors: string[] = []
-    var normalizedZoneName = this.zone.zoneName
+    var normalizedZoneName = this.zone?.zoneName
+    console.log('normalizedZoneName', normalizedZoneName)
 
     if (normalizedZoneName.endsWith('.')) {
       normalizedZoneName = normalizedZoneName.substring(0, normalizedZoneName.length - 1)

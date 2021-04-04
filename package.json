@@ -10,9 +10,9 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "synth": "cdk synth -c domain=${DOMAIN} -o dist",
-    "diff": "cdk diff -c domain=${DOMAIN}",
-    "deploy": "cdk deploy -c domain=${DOMAIN}"
+    "synth": "cdk synth -o dist",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.96.0",
