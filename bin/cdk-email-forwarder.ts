@@ -13,3 +13,6 @@ const stage = process.env.STAGE || 'tmc'
 console.log('env', env)
 
 new CdkEmailForwarderStack(app, 'CdkEmailForwarderStack', { env, stage })
+
+// rule-set stack must be deployed in us-east-1, us-west-2, eu-west-1
+// https://github.com/aws/aws-cdk/issues/2584

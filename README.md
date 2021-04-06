@@ -8,15 +8,28 @@ From and Reply-To are modified to the sender
 
 ## Setup
 
-cdk context -c domain=yourdomain.com
+Update cdk.json to set context variables per stage:
+```json
+
+{"context": 
+"dev": {
+  "domainNames": ["example.com", "example.net"],
+  "forwardTo": "forwardto@destination.com",
+  "bucketName": "email-forwarder"
+  }
+}
+```
+cdk context
 
 yarn
 yarn build
 yarn deploy
 
 ## Verifying new addresses
-TBD
+- Manual step via cli or console
 
+## Questions
+1. DKIM
 ## Constraints (SES)
 
 SES only allows sending email from addresses or domains that are verified. Since this script is meant to allow forwarding email from any sender, the message is modified to allow forwarding through SES and reflect the original sender. This script adds a Reply-To header with the original sender, but the From header is changed to display the original sender but to be sent from the original destination.

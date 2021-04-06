@@ -41,14 +41,13 @@ export class VerifyDomainIdentity extends cdk.Construct {
 
     const prefix = `verifyDomainIdentity ${domainName}`
 
-    console.debug(prefix, 'start')
+    // console.debug(prefix, 'start')
     const verifyDomainIdentity = new AwsCustomResource(this, 'VerifyDomainIdentity', {
       onCreate: {
         service,
         action: 'verifyDomainIdentity',
         parameters: {
-          Domain: domainName,
-          DKIM: true
+          Domain: domainName
         },
         physicalResourceId: PhysicalResourceId.fromResponse('VerificationToken') // Use the token returned by the call as physical id
       },
@@ -58,7 +57,7 @@ export class VerifyDomainIdentity extends cdk.Construct {
       logRetention: logs.RetentionDays.ONE_WEEK
     })
 
-    console.debug(prefix, 'lookup zone')
+    // console.debug(prefix, 'lookup zone')
     const zone = route53.PublicHostedZone.fromLookup(this, `Zone`, { domainName })
     // const zone = route53.HostedZone.fromHostedZoneAttributes(this, `Zone`, { zoneName: domainName }))
     this.zone = zone
@@ -78,7 +77,7 @@ export class VerifyDomainIdentity extends cdk.Construct {
       recordName,
       values: [verificationToken]
     })
-    console.debug(prefix, 'txt record added')
+    // console.debug(prefix, 'txt record added')
 
     //Q: are any more steps needed? https://github.com/mooyoul/aws-cdk-ses-domain-identity/blob/master/lambda-packages/dns-validated-domain-identity-handler/src/verifier.ts
   }
@@ -86,7 +85,7 @@ export class VerifyDomainIdentity extends cdk.Construct {
   onValidate(): string[] {
     const errors: string[] = []
     var normalizedZoneName = this.zone?.zoneName
-    console.log('normalizedZoneName', normalizedZoneName)
+    // console.log('normalizedZoneName', normalizedZoneName)
 
     if (normalizedZoneName.endsWith('.')) {
       normalizedZoneName = normalizedZoneName.substring(0, normalizedZoneName.length - 1)
