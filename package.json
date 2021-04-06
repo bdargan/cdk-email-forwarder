@@ -6,11 +6,11 @@
   },
   "scripts": {
     "build": "tsc",
-    "prebuild": "rm -rf dist/asset.*",
+    "prebuild": "rm -rf cdk.out/asset.*",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "synth": "cdk synth -o dist",
+    "synth": "cdk synth",
     "diff": "cdk diff",
     "deploy": "cdk deploy"
   },

@@ -15,4 +15,5 @@ console.log('env', env)
 new CdkEmailForwarderStack(app, 'CdkEmailForwarderStack', { env, stage })
 
 // rule-set stack must be deployed in us-east-1, us-west-2, eu-west-1
+// including all aws resources (except for s3 buckets)
 // https://github.com/aws/aws-cdk/issues/2584

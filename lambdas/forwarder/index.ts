@@ -1,7 +1,7 @@
 import { SESClient, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-ses'
 import { send } from 'process'
 
-const region = process.env.REGION ?? 'us-west-1'
+const region = process.env.REGION ?? 'us-west-2'
 const forwardTo = process.env.EMAIL ?? 'brett.dargan@gmail.com'
 const client = new SESClient({ region })
 
