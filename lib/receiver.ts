@@ -18,11 +18,6 @@ export class Receiver extends cdk.Construct {
 
     const { bucket, fn, keyPrefix, topic } = props
 
-    // const sesServicePrincipal = new iam.ServicePrincipal('ses.amazonaws.com').withConditions({
-    //   StringEquals: { 'aws:Referer': props?.env?.account }
-    // })
-    // bucket.grantWrite(sesServicePrincipal)
-
     var s3Props: actions.S3Props = { bucket, objectKeyPrefix: `${keyPrefix}/`, topic }
     const receiptRuleSet = new ses.ReceiptRuleSet(scope, 'RuleSet', {
       rules: [

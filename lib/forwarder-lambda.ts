@@ -4,6 +4,7 @@ import * as iam from '@aws-cdk/aws-iam'
 import * as lambda from '@aws-cdk/aws-lambda'
 import { Duration } from '@aws-cdk/core'
 import { ForwarderStageProps } from './stage-props'
+import { Effect, Grant } from '@aws-cdk/aws-iam'
 
 export class ForwarderLambda extends cdk.Construct {
   readonly lambda: nodejs.NodejsFunction
@@ -35,5 +36,15 @@ export class ForwarderLambda extends cdk.Construct {
       }
     })
     this.lambda = fn
+
+    const { region, account } = props.env ?? { region: 'us-west-2', account: 'none' }
+    const allIdentities = `arn:aws:ses:${region}:${account}:identity/*`
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+        resources: [allIdentities]
+      })
+    )
   }
 }

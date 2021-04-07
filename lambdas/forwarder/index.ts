@@ -1,45 +1,65 @@
-import { SESClient, SendEmailCommand, SendEmailCommandInput, SendEmailRequest, Destination } from '@aws-sdk/client-ses'
-//@aws-sdk/client-s3-node, is deprecated!
+import {
+  SESv2,
+  SendEmailCommand,
+  SendEmailCommandInput,
+  SendEmailRequest,
+  Destination,
+  EmailContent
+} from '@aws-sdk/client-sesv2'
+
 import { GetObjectCommand, GetObjectCommandOutput, GetObjectOutput, S3 } from '@aws-sdk/client-s3'
-import { Readable } from 'node:stream'
-import { WriteStream } from 'node:fs'
+import { Readable } from 'stream'
 
 const region = process.env.REGION ?? 'us-west-2'
-const client = new SESClient({ region })
+const client = new SESv2({ region })
 const s3Client = new S3({ region })
 
 const forwardTo = process.env.FORWARD_TO ?? 'brett.dargan@gmail.com'
+const sender = process.env.SENDER ?? 'brett.dargan@gmail.com'
 const bucketName = process.env.BUCKET ?? 'specify-bucket-env-vars'
 const keyPrefix = process.env.KEY_PREFIX ?? 'specify-key-prefix'
 const plusDomain = process.env.PLUS_DOMAIN === 'true' ?? true
 
-// domains, receiver address
-// const forwardMapping
-// raw/html
-// attachments
-// plus support
-// shortcode
-
-const getEmail = (record: any, plusDomain: boolean) => {
+const getEmail = (mail: any, plusDomain: boolean) => {
   if (plusDomain) {
-    const parts = forwardTo.split('@')
-    const domain = parts[1]
-    return `${parts[0]}+@${domain}`
+    const toParts = forwardTo.split('@')
+    const domain = toParts[1]
+    const destination = mail?.destination ?? 'unknown-source'
+    const destParts = destination.split('@')
+    return `${toParts[0]}+${destParts[1]}@${domain}`
   }
   return forwardTo
 }
-const sendMessage = async (record: any, body: Blob | ReadableStream | string) => {
-  const email = getEmail(record, plusDomain)
+const sendMessage = async (record: any, body: string) => {
+  console.log('sendMessage', JSON.stringify(record, null, 2))
+  const mail = record?.ses?.mail
+  const email = getEmail(mail, plusDomain)
+  const subject = mail?.commonHeaders?.subject ?? 'subject?'
   const destination: Destination = {
     ToAddresses: [email]
   }
-  const source = record?.mail?.source ?? 'unknown-source'
+  const source = mail?.source ?? 'unknown-source'
   const params: SendEmailCommandInput = {
-    Source: source,
+    FromEmailAddress: sender,
     ReplyToAddresses: [source],
     Destination: destination,
-    Message: body ?? 'empty message'
+    Content: {
+      Simple: {
+        Subject: { Data: subject, Charset: 'UTF-8' },
+        Body: {
+          Text: { Data: body, Charset: 'UTF-8' }
+        }
+      }
+    }
   }
+  // const params: SendEmailCommandInput = {
+  //   // Source: source,
+  //   ReplyToAddresses: [source],
+  //   Destination: destination,
+  //   Message: body ?? 'empty message'
+  // }
+
+  console.log('sendEmail params', params)
   const command = new SendEmailCommand(params)
 
   return client.send(command)
@@ -61,14 +81,16 @@ const handleEvent = async (event: any) => {
       const getContent = new GetObjectCommand(params)
 
       return s3Client.send(getContent).then(async (resp: GetObjectCommandOutput) => {
-        console.log('resp.Body instanceof ', typeof resp.Body)
         if (resp.Body instanceof Readable) {
-          const writeable = new WriteStream()
-          resp.Body.pipe(writeable)
-          const body = await writeable.toString()
+          var body = ''
+          for await (const chunk of resp.Body) {
+            body += chunk
+          }
+          console.log('body is', body)
           return sendMessage(record, body)
         } else {
           console.log('resp.Body type unhandled')
+          return sendMessage(record, 'type unknown')
         }
       })
     })
