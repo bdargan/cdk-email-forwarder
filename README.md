@@ -15,7 +15,11 @@ Update cdk.json to set context variables per stage:
 "dev": {
   "domainNames": ["example.com", "example.net"],
   "forwardTo": "forwardto@destination.com",
-  "bucketName": "email-forwarder"
+  "bucketName": "email-forwarder",
+  "notifications": {
+    "email": "me@example.com",
+    "enabled": "true"
+    }
   }
 }
 ```
@@ -28,6 +32,8 @@ yarn deploy
 ## Verifying new addresses
 - Manual step via cli or console
 
+## Verifying SNS notification address
+check your emails.
 ## Questions
 1. DKIM
 ## Constraints (SES)
@@ -47,7 +53,6 @@ SES only allows receiving email sent to addresses within verified domains. For m
 SES only allows sending emails up to 10 MB in size (including attachments after encoding). See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
 
 Initially SES users are in a sandbox environment that has a number of limitations. See: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
-
 
 
 ## References

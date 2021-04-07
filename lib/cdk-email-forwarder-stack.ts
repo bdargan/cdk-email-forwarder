@@ -1,8 +1,10 @@
 import * as cdk from '@aws-cdk/core'
 import { ForwarderLambda } from './forwarder-lambda'
-import { VerifyDomainIdentity } from './domain-verification'
+import { VerifyDomainIdentity } from './verify-domain-identity'
 import { EmailBucket } from './email-bucket'
 import { Receiver } from './receiver'
+import { AddMXDNSRecord } from './domain-name-records'
+import { ForwarderNotification } from './notification'
 export interface CdkEmailForwarderStackProps extends cdk.StackProps {
   stage: string
 }
@@ -16,19 +18,31 @@ export class CdkEmailForwarderStack extends cdk.Stack {
     const emailProps: any = Object.assign({}, props, { bucketName, expiryDays: 30 })
     const emailBucket = new EmailBucket(this, 'Email', emailProps)
 
+    const addMxRecord = (verifiedDomain: VerifyDomainIdentity) => {
+      const { domainName, zone } = verifiedDomain
+      const hostNames = [`inbound-smtp.${this.region}.amazonaws.com.`]
+      const domainRecordProps = Object.assign({}, props, { zone, hostNames, domainName })
+      new AddMXDNSRecord(this, `SES-DNS-${domainName}`, domainRecordProps)
+    }
+
     for (let domainName of domainNames) {
       const verifyDomainProps: any = Object.assign({}, props, {
         domainName: domainName
       })
-      new VerifyDomainIdentity(this, `SES-${domainName}`, verifyDomainProps)
+      const verifiedDomain = new VerifyDomainIdentity(this, `SES-${domainName}`, verifyDomainProps)
+      addMxRecord(verifiedDomain)
     }
 
     const forwarderFn = new ForwarderLambda(this, 'ForwarderLambda', props)
-    // console.log('bucketArn', emailBucket.bucket.bucketArn)
-    // console.log('lambdaArn', forwarderFn.lambda.functionArn)
 
-    const receiverProps = Object.assign({}, props, { fn: forwarderFn.lambda, bucket: emailBucket.bucket, forwardTo })
-    // const receiver = new Receiver(this, 'Receiver', receiverProps)
+    const notification = new ForwarderNotification(this, 'Notification', Object.assign({}, props, stageProps))
+    const receiverProps = Object.assign({}, props, {
+      fn: forwarderFn.lambda,
+      bucket: emailBucket.bucket,
+      forwardTo,
+      topic: notification.topic
+    })
+    const receiver = new Receiver(this, 'Receiver', receiverProps)
   }
 
   protected onValidate(): string[] {

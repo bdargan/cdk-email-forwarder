@@ -6,7 +6,7 @@ import * as iam from '@aws-cdk/aws-iam'
 import { IHostedZone } from '@aws-cdk/aws-route53'
 export interface VerifyDomainIdentityProps {
   service?: string //SES
-  domainName: string //ignored for now
+  domainName: string
 }
 
 export class VerifyDomainIdentity extends cdk.Construct {
