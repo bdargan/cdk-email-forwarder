@@ -11,15 +11,15 @@ From and Reply-To are modified to the sender
 Update cdk.json to set context variables per stage:
 ```json
 
-{"context": 
-"dev": {
-  "domainNames": ["example.com", "example.net"],
-  "forwardTo": "forwardto@destination.com",
-  "bucketName": "email-forwarder",
-  "notifications": {
-    "email": "me@example.com",
-    "enabled": "true"
-    }
+{"context":
+  "stageName": {
+    "domainNames": ["example.com", "example.net"],
+    "forwardTo": "forwardto@destination.com",
+    "bucketName": "email-forwarder",
+    "notifications": {
+      "email": "debug@destination.com",
+      "enabled": "true"
+      }
   }
 }
 ```
@@ -28,6 +28,12 @@ cdk context
 yarn
 yarn build
 yarn deploy
+
+console.log the command to execute the ruleset
+OR Enable the ses ruleset manually
+
+Manually verify email notification address
+Add new emails
 
 ## Verifying new addresses
 - Manual step via cli or console

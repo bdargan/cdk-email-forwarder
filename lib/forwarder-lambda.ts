@@ -3,13 +3,13 @@ import * as cdk from '@aws-cdk/core'
 import * as iam from '@aws-cdk/aws-iam'
 import * as lambda from '@aws-cdk/aws-lambda'
 import { Duration } from '@aws-cdk/core'
-export interface ForwarderLambdaProps extends cdk.StackProps {}
+import { ForwarderStageProps } from './stage-props'
 
 export class ForwarderLambda extends cdk.Construct {
   readonly lambda: nodejs.NodejsFunction
-  constructor(scope: cdk.Construct, id: string, props?: ForwarderLambdaProps) {
+  constructor(scope: cdk.Construct, id: string, props: ForwarderStageProps) {
     super(scope, id)
-    const domain = this.node.tryGetContext('domain') ?? 'brettdargan.com'
+    const { forwardTo, bucketName, keyPrefix } = props
     const fnName = `SESForwarder`
 
     const fnBasicExecPolicy = iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
@@ -24,7 +24,15 @@ export class ForwarderLambda extends cdk.Construct {
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_14_X,
       role,
-      timeout
+      timeout,
+      environment: {
+        FORWARD_TO: forwardTo,
+        KEY_PREFIX: keyPrefix,
+        BUCKET: bucketName
+      },
+      bundling: {
+        sourceMap: true
+      }
     })
     this.lambda = fn
   }

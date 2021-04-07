@@ -5,16 +5,18 @@ import { EmailBucket } from './email-bucket'
 import { Receiver } from './receiver'
 import { AddMXDNSRecord } from './domain-name-records'
 import { ForwarderNotification } from './notification'
+import { ForwarderStageProps } from './stage-props'
 export interface CdkEmailForwarderStackProps extends cdk.StackProps {
   stage: string
 }
+
 export class CdkEmailForwarderStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: CdkEmailForwarderStackProps) {
     super(scope, id, props)
 
-    const stageProps = this.node.tryGetContext(props?.stage)
-    const { bucketName, domainNames, forwardTo } = stageProps
-
+    const stageProps: ForwarderStageProps = this.node.tryGetContext(props?.stage)
+    const { bucketName, domainNames, forwardTo, notifications } = stageProps
+    console.log('stageProps', stageProps)
     const emailProps: any = Object.assign({}, props, { bucketName, expiryDays: 30 })
     const emailBucket = new EmailBucket(this, 'Email', emailProps)
 
@@ -33,13 +35,13 @@ export class CdkEmailForwarderStack extends cdk.Stack {
       addMxRecord(verifiedDomain)
     }
 
-    const forwarderFn = new ForwarderLambda(this, 'ForwarderLambda', props)
+    const forwarderFn = new ForwarderLambda(this, 'ForwarderLambda', Object.assign({}, props, stageProps))
+    emailBucket.bucket.grantRead(forwarderFn.lambda)
 
     const notification = new ForwarderNotification(this, 'Notification', Object.assign({}, props, stageProps))
-    const receiverProps = Object.assign({}, props, {
+    const receiverProps = Object.assign({}, props, stageProps, {
       fn: forwarderFn.lambda,
       bucket: emailBucket.bucket,
-      forwardTo,
       topic: notification.topic
     })
     const receiver = new Receiver(this, 'Receiver', receiverProps)

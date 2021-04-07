@@ -22,15 +22,16 @@
     "@aws-cdk/aws-route53": "1.96.0",
     "@aws-cdk/aws-s3": "1.96.0",
     "@aws-cdk/aws-ses-actions": "1.96.0",
-    "@aws-cdk/core": "1.96.0",
-    "@aws-cdk/custom-resources": "1.96.0",
     "@aws-cdk/aws-sns": "1.96.0",
     "@aws-cdk/aws-sns-subscriptions": "1.96.0",
+    "@aws-cdk/core": "1.96.0",
+    "@aws-cdk/custom-resources": "1.96.0",
+    "@aws-sdk/client-s3": "^3.11.0",
     "@aws-sdk/client-ses": "^3.11.0",
-    "@types/jest": "^26.0.10",
-    "@types/node": "10.17.27",
-    "add": "^2.0.6",
+    "@types/jest": "^26.0.22",
+    "@types/node": "^14.14.37",
     "esbuild": "0",
+    "eslint-plugin-you-dont-need-lodash-underscore": "^6.11.0",
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
     "ts-node": "^9.0.0",
@@ -38,6 +39,9 @@
     "yarn": "^1.22.10"
   },
   "dependencies": {
+    "@aws-sdk/client-s3-node": "^0.1.0-preview.2",
+    "@aws-sdk/client-sesv2": "^3.11.0",
+    "@aws-sdk/types": "^3.10.0",
     "source-map-support": "^0.5.16"
   }
 }

@@ -7,6 +7,7 @@ import * as sns from '@aws-cdk/aws-sns'
 export interface ReceiverProps extends cdk.StackProps {
   bucket: s3.IBucket
   forwardTo: string
+  keyPrefix: string
   fn: lambda.IFunction
   topic?: sns.ITopic
 }
@@ -15,14 +16,14 @@ export class Receiver extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ReceiverProps) {
     super(scope, id)
 
-    const { bucket, fn, topic } = props
+    const { bucket, fn, keyPrefix, topic } = props
 
     // const sesServicePrincipal = new iam.ServicePrincipal('ses.amazonaws.com').withConditions({
     //   StringEquals: { 'aws:Referer': props?.env?.account }
     // })
     // bucket.grantWrite(sesServicePrincipal)
 
-    var s3Props: actions.S3Props = { bucket, objectKeyPrefix: 'emails/', topic }
+    var s3Props: actions.S3Props = { bucket, objectKeyPrefix: `${keyPrefix}/`, topic }
     const receiptRuleSet = new ses.ReceiptRuleSet(scope, 'RuleSet', {
       rules: [
         {

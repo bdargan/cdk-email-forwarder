@@ -1,20 +1,13 @@
 import * as cdk from '@aws-cdk/core'
 import * as sns from '@aws-cdk/aws-sns'
 import * as subscriptions from '@aws-cdk/aws-sns-subscriptions'
+import { ForwarderStageProps } from './stage-props'
 
-export interface ForwarderNotificationInput {
-  email: string
-  enabled: string
-}
-export interface ForwarderNotificationProps extends cdk.StackProps {
-  notifications: ForwarderNotificationInput
-}
-
+type ForwarderNotificationProps = ForwarderStageProps
 export class ForwarderNotification extends cdk.Construct {
   readonly topic: sns.ITopic
   constructor(scope: cdk.Construct, id: string, props: ForwarderNotificationProps) {
     super(scope, id)
-    console.log(props)
     this.topic = new sns.Topic(this, 'EmailNotif', {
       topicName: 'EmailForwarderNotifier'
     })
