@@ -9,10 +9,7 @@
     "prebuild": "rm -rf cdk.out/asset.*",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "synth": "cdk synth",
-    "diff": "cdk diff",
-    "deploy": "cdk deploy"
+    "cdk": "cdk"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.96.0",
@@ -28,6 +25,7 @@
     "@aws-cdk/custom-resources": "1.96.0",
     "@aws-sdk/client-s3": "^3.11.0",
     "@aws-sdk/client-ses": "^3.11.0",
+    "@types/aws-lambda": "^8.10.75",
     "@types/jest": "^26.0.22",
     "@types/node": "^14.14.37",
     "esbuild": "0",
@@ -42,6 +40,9 @@
     "@aws-sdk/client-s3-node": "^0.1.0-preview.2",
     "@aws-sdk/client-sesv2": "^3.11.0",
     "@aws-sdk/types": "^3.10.0",
+    "aws-lambda": "^1.0.6",
+    "aws-lambda-ses-forwarder": "^5.0.0",
+    "aws-sdk": "^2.882.0",
     "source-map-support": "^0.5.16"
   }
 }

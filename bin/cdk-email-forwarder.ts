@@ -5,8 +5,8 @@ import { CdkEmailForwarderStack } from '../lib/cdk-email-forwarder-stack'
 
 const app = new cdk.App()
 const env = {
-  account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || process.env.AWS_ACCOUNT,
-  region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || process.env.AWS_REGION
+  account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT || 'account?',
+  region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION || 'region?'
 }
 
 const stage = process.env.STAGE || 'tmc'

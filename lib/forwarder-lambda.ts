@@ -29,7 +29,11 @@ export class ForwarderLambda extends cdk.Construct {
       environment: {
         FORWARD_TO: forwardTo,
         KEY_PREFIX: keyPrefix,
-        BUCKET: bucketName
+        BUCKET_PREFIX: keyPrefix,
+        BUCKET: bucketName,
+        BUCKET_NAME: bucketName,
+        EMAIL_MAPPING_SSM_KEY: `/ses-email-forwarding/${bucketName}-rule/mapping`,
+        FROM_EMAIL: forwardTo
       },
       bundling: {
         sourceMap: true
@@ -44,6 +48,14 @@ export class ForwarderLambda extends cdk.Construct {
         effect: Effect.ALLOW,
         actions: ['ses:SendEmail', 'ses:SendRawEmail'],
         resources: [allIdentities]
+      })
+    )
+    const forwarderParameters = `arn:aws:ssm:${region}:${account}:parameter/ses-email-forwarding/*`
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: [forwarderParameters]
       })
     )
   }

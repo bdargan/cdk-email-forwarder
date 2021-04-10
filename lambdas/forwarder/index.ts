@@ -1,103 +1,77 @@
-import {
-  SESv2,
-  SendEmailCommand,
-  SendEmailCommandInput,
-  SendEmailRequest,
-  Destination,
-  EmailContent
-} from '@aws-sdk/client-sesv2'
+import { Context, S3Event } from 'aws-lambda'
+import * as AWS from 'aws-sdk'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const forwarder = require('aws-lambda-ses-forwarder')
 
-import { GetObjectCommand, GetObjectCommandOutput, GetObjectOutput, S3 } from '@aws-sdk/client-s3'
-import { Readable } from 'stream'
+const ssm = new AWS.SSM()
+const ssmKey = process.env.EMAIL_MAPPING_SSM_KEY as string
+const fromEmail = process.env.FROM_EMAIL
+const bucketName = process.env.BUCKET_NAME
+const bucketPrefix = process.env.BUCKET_PREFIX
+const isLoggingEnabled = process.env.ENABLE_LOGGING === 'true'
 
-const region = process.env.REGION ?? 'us-west-2'
-const client = new SESv2({ region })
-const s3Client = new S3({ region })
+// store the email mapping outside of the handler function to not load it every time the Lambda function is invoked
+let emailMapping: any = null
 
-const forwardTo = process.env.FORWARD_TO ?? 'brett.dargan@gmail.com'
-const sender = process.env.SENDER ?? 'brett.dargan@gmail.com'
-const bucketName = process.env.BUCKET ?? 'specify-bucket-env-vars'
-const keyPrefix = process.env.KEY_PREFIX ?? 'specify-key-prefix'
-const plusDomain = process.env.PLUS_DOMAIN === 'true' ?? true
-
-const getEmail = (mail: any, plusDomain: boolean) => {
-  if (plusDomain) {
-    const toParts = forwardTo.split('@')
-    const domain = toParts[1]
-    const destination = mail?.destination ?? 'unknown-source'
-    const destParts = destination.split('@')
-    return `${toParts[0]}+${destParts[1]}@${domain}`
+function log(message: string, ...obj: any): void {
+  if (isLoggingEnabled) {
+    console.log(message, ...obj)
   }
-  return forwardTo
 }
-const sendMessage = async (record: any, body: string) => {
-  console.log('sendMessage', JSON.stringify(record, null, 2))
-  const mail = record?.ses?.mail
-  const email = getEmail(mail, plusDomain)
-  const subject = mail?.commonHeaders?.subject ?? 'subject?'
-  const destination: Destination = {
-    ToAddresses: [email]
-  }
-  const source = mail?.source ?? 'unknown-source'
-  const params: SendEmailCommandInput = {
-    FromEmailAddress: sender,
-    ReplyToAddresses: [source],
-    Destination: destination,
-    Content: {
-      Simple: {
-        Subject: { Data: subject, Charset: 'UTF-8' },
-        Body: {
-          Text: { Data: body, Charset: 'UTF-8' }
-        }
-      }
+
+async function loadEmailMappingFromSsm() {
+  if (!emailMapping) {
+    const ssmValue = await ssm
+      .getParameter({
+        Name: ssmKey
+      })
+      .promise()
+
+    if (ssmValue.Parameter?.Value) {
+      emailMapping = JSON.parse(ssmValue.Parameter.Value)
     }
   }
-  // const params: SendEmailCommandInput = {
-  //   // Source: source,
-  //   ReplyToAddresses: [source],
-  //   Destination: destination,
-  //   Message: body ?? 'empty message'
-  // }
-
-  console.log('sendEmail params', params)
-  const command = new SendEmailCommand(params)
-
-  return client.send(command)
 }
 
-const handleEvent = async (event: any) => {
-  if (!event.Records) {
-    return
+export const handler = async (event: S3Event, context: Context): Promise<void> => {
+  log('Received SES event : ', JSON.stringify(event))
+
+  if (!ssmKey || !fromEmail || !bucketName) {
+    const message =
+      'Missing required environment variables. Either EMAIL_MAPPING_SSM_KEY, FROM_EMAIL or BUCKET_NAME is not set.'
+    console.error(message)
+    return Promise.reject(message)
   }
-  return Promise.all(
-    event.Records.map(async (record: any) => {
-      const messageId = record?.ses?.mail?.messageId ?? 'invalid messageId'
-      const key = `${keyPrefix}/${messageId}`
-      const params = {
-        Bucket: bucketName,
-        Key: key
-      }
-      console.log('getObject params', params)
-      const getContent = new GetObjectCommand(params)
 
-      return s3Client.send(getContent).then(async (resp: GetObjectCommandOutput) => {
-        if (resp.Body instanceof Readable) {
-          var body = ''
-          for await (const chunk of resp.Body) {
-            body += chunk
+  await loadEmailMappingFromSsm()
+
+  if (emailMapping) {
+    const config = {
+      fromEmail: fromEmail,
+      emailBucket: bucketName,
+      emailKeyPrefix: bucketPrefix,
+      forwardMapping: emailMapping
+    }
+
+    log('Forwarding email with config: ', JSON.stringify(config))
+
+    return new Promise((resolve, reject) => {
+      forwarder.handler(
+        event,
+        context,
+        (err: any) => {
+          if (err) {
+            reject()
+          } else {
+            resolve()
           }
-          console.log('body is', body)
-          return sendMessage(record, body)
-        } else {
-          console.log('resp.Body type unhandled')
-          return sendMessage(record, 'type unknown')
-        }
-      })
+        },
+        { config }
+      )
     })
-  )
-}
+  } else {
+    log('Not forwarding mail. Reason: No email mapping found in SSM parameter ' + ssmKey)
+  }
 
-export const handler = async (event: any, context: any) => {
-  console.log('forwarder event', JSON.stringify(event, null, 2))
-  return handleEvent(event)
+  return Promise.resolve()
 }
