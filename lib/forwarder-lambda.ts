@@ -58,5 +58,6 @@ export class ForwarderLambda extends cdk.Construct {
         resources: [forwarderParameters]
       })
     )
+    role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'))
   }
 }

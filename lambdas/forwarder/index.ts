@@ -13,9 +13,9 @@ const isLoggingEnabled = process.env.ENABLE_LOGGING === 'true'
 // store the email mapping outside of the handler function to not load it every time the Lambda function is invoked
 let emailMapping: any = null
 
-function log(message: string, ...obj: any): void {
+function log(message: string, ...args: any): void {
   if (isLoggingEnabled) {
-    console.log(message, ...obj)
+    console.log(message, args)
   }
 }
 
@@ -29,6 +29,9 @@ async function loadEmailMappingFromSsm() {
 
     if (ssmValue.Parameter?.Value) {
       emailMapping = JSON.parse(ssmValue.Parameter.Value)
+      console.log('emailMapping', ssmValue.Parameter.Value)
+    } else {
+      console.error('email mapping not found', ssmKey)
     }
   }
 }
@@ -66,7 +69,7 @@ export const handler = async (event: S3Event, context: Context): Promise<void> =
             resolve()
           }
         },
-        { config }
+        { config, log }
       )
     })
   } else {
