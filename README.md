@@ -4,6 +4,7 @@ Provide a stack that receives emails for a domain and forwards emails to *verifi
 
 Email headers for From and Reply-To are modified when sent. Email attachments are supported (upto 10MB).
 
+Email forwarding mapping can be managed in SSM for multiple domains.
 ## Stack creates
 * S3 bucket *- for email body and attachments*
 * SES Domain verification

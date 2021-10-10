@@ -9,4 +9,5 @@ cdk.out
 .env
 dist/
 cdk.context.json
+cdk.json
 
