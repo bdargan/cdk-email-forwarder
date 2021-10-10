@@ -4,6 +4,7 @@
   "bin": {
     "cdk-email-forwarder": "bin/cdk-email-forwarder.js"
   },
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "prebuild": "rm -rf cdk.out/asset.*",
