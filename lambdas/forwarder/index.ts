@@ -74,7 +74,6 @@ export const handler = async (event: S3Event, context: Context): Promise<void> =
     })
   } else {
     log('Not forwarding mail. Reason: No email mapping found in SSM parameter ' + ssmKey)
+    return Promise.resolve()
   }
-
-  return Promise.resolve()
 }

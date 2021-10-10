@@ -1,12 +1,24 @@
 # CDK SES Email Forwarder
 
-A CDK stack that allows sending and receiving email from *verified* addresses.
+Provide a stack that receives emails for a domain and forwards emails to *verified* addresses.
 
-sender -> ses -> recipient
+Email headers for From and Reply-To are modified when sent. Email attachments are supported (upto 10MB).
 
-From and Reply-To are modified to the sender
+## Stack creates
+* S3 bucket *- for email body and attachments*
+* SES Domain verification
+* SSM for shared config
+* Forwarder lambda
+* S3 auto delete lambda
+* Log retention lambda
+## Use cases
+* Email forwarding / aggregation
 
-## Setup
+## Setup *WIP*
+
+configure the stack in cdk.json.
+
+Then configure the SSM key.
 
 Update cdk.json to set context variables per stage:
 ```json
@@ -33,13 +45,13 @@ console.log the command to execute the ruleset
 OR Enable the ses ruleset manually
 
 Manually verify email notification address
-Add new emails
+Add new emails to forward to.
 
 ## Verifying new addresses
 - Manual step via cli or console
 
 ## Verifying SNS notification address
-check your emails.
+Check your emails.
 ## Questions
 1. DKIM
 ## Constraints (SES)
@@ -64,3 +76,4 @@ Initially SES users are in a sandbox environment that has a number of limitation
 ## References
 - https://github.com/arithmetric/aws-lambda-ses-forwarder
 - https://nealalan.github.io/AWS-Email-Forwarder/
+- https://github.com/seeebiii/ses-email-forwarding

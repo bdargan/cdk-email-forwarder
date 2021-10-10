@@ -51,7 +51,7 @@ export class CdkEmailForwarderStack extends cdk.Stack {
     const errors: string[] = []
     const validRegions = ['us-east-1', 'us-west-2', 'eu-west-1']
     if (!validRegions.includes(this.region)) {
-      errors.push(`incorrect region ${this.region}, ses receipt rules need to be in one of ${validRegions.join(', ')}`)
+      errors.push(`incorrect region ${this.region}, ses receipt rules restricted to one of ${validRegions.join(', ')}`)
     }
     return errors
   }

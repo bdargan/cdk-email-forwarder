@@ -12,10 +12,10 @@
       "domainNames": ["trackmycash.net", "brettdargan.com"],
       "bucketName": "emailforwarder-63a153aa",
       "forwardTo": "brett.dargan@gmail.com",
-      "keyPrefix": "emails",
+      "keyPrefix": "emails/",
       "notifications": {
         "email": "brett.dargan@gmail.com",
-        "enabled": "true"
+        "enabled": "false"
       }
     }
   }
